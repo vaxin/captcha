@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+#- coding: utf-8 -
 from PIL import Image
 from pylab import *
 import numpy
@@ -33,9 +33,12 @@ def scale(img, scale):
   h = int(float(img.size[1]) * scale)
   return img.resize((w, h), Image.ANTIALIAS)
 
-def getImageData(img):
+def getImageData(img, reshape = None):
   img = numpy.asarray(img, dtype=numpy.float32)
-  return img / 255.
+  res = img / 255.
+  if reshape is not None:
+    res = res.reshape(reshape)
+  return res
 
 def getFragments(img, step):
   img = getImageData(img)
