@@ -30,4 +30,4 @@ The Generator will generates all the training sets, the Trainer will train every
 - trainer.py - The Trainer
 - runner.py - The Runner
 - nn.net - The trained and saved network parameters
-- sparse_auto_encode.py - Implementation of Sparse Auto Encoder. It will be used to train some layers under unsupervised learning.
+- sparse_auto_encode.py - Implementation of Sparse Auto Encoder. It will be used to train some layers under unsupervised learning, which will construct the basic layers of the whole Neural Network.
