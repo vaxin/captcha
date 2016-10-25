@@ -53,6 +53,18 @@ def getFragments(img, step):
       ret.append(tmp)
   return ret
 
+def explode(img, conv_size, stride):
+  ret = []
+  row = len(img)
+  col = len(img[0])
+
+  for x in range(0, row - conv_size, stride):
+    for y in range(0, col - conv_size, stride):
+      tmp = img[x: x + conv_size, y: y + conv_size]
+      ret.append(tmp)
+
+  return ret
+
 def getMore(img):
   # self
   r = getFragments(img, 20)
