@@ -2,6 +2,7 @@
 import tensorflow as tf
 import numpy as np
 import util
+import img as img_util
 
 def train(training_set, img_size, pre_net_op, n_hidden):
   '''
@@ -12,21 +13,21 @@ def train(training_set, img_size, pre_net_op, n_hidden):
   n_pixel = img_w * img_h
 
   # conv input size
-  conv_size = 5
+  conv_size = 15
 
   # convert training_set to segment
   new_set = []
   training_set = training_set.reshape(-1, img_w, img_h)
 
   for img in training_set:
-    for item in util.explode(img, conv_size, 10):
+    for item in img_util.conv(img, conv_size, 10):
       item = np.asarray(item).reshape(conv_size * conv_size)
       new_set.append(item)
   training_set = np.asarray(new_set)
   print training_set.shape
 
   learning_rate = 1e-3
-  training_epochs = 1500
+  training_epochs = 150
   batch_size = 1000
 
   # layer will trained by autoencoder
@@ -103,7 +104,7 @@ if __name__ == "__main__":
   n_feature = 25
   training_set = generator.generate((w, w))
   '''
-  img = util.gray(util.getImg('desk.jpg'))
+  img = util.gray(util.getImage('desk.jpg'))
   img_size = img.size
   img = util.getImageData(img)
   training_set = np.asarray([ img ])
