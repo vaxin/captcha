@@ -50,8 +50,8 @@ def train(training_set, img_size, conv_size, pre_net_op, n_feature):
   '''
   print training_set
 
-  learning_rate = 1e-5
-  training_epochs = 10000
+  learning_rate = 0.003
+  training_epochs = 200
   batch_size = 500
 
   # layer will trained by autoencoder
@@ -91,14 +91,18 @@ def train(training_set, img_size, conv_size, pre_net_op, n_feature):
     num = training_set.shape[0]
     total_batch = int(num / batch_size)
 
-    for epoch in range(training_epochs):
-      # Loop over all batches
-      for i in range(total_batch):
-        batch_x = training_set[i * batch_size : (i+1) * batch_size]
-        _, c, ws = sess.run([ optimizer, cost, all_sum ], feed_dict = { X: batch_x })
+    try:
+      for epoch in range(training_epochs):
+        # Loop over all batches
+        for i in range(total_batch):
+          batch_x = training_set[i * batch_size : (i+1) * batch_size]
+          _, c, ws = sess.run([ optimizer, cost, all_sum ], feed_dict = { X: batch_x })
 
-      print "Epoch:", epoch, ", cost=", c
-      summary_writer.add_summary(ws, epoch)
+        print "Epoch:", epoch, ", cost=", c
+        summary_writer.add_summary(ws, epoch)
+    except:
+      print 'Early Stop Manually'
+
     w = encoder_W.eval()
 
   return w
