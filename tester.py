@@ -17,6 +17,11 @@ def testLines():
   training_set = []
   for _  in range(10000):
     training_set.append(genOneLineGrayImageArray(S))
+  training_set = np.asarray(training_set)
+
+  img_util.saveTIFFsFromArray(training_set[0:10], 'source') 
+  
+  training_set = training_set.reshape(-1, S * S)
   weights = sparse_auto_encode.train(np.asarray(training_set), (S, S), None, n_feature)
   
   imgs = util.visualize(weights, (S, S))

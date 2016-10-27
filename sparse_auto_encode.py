@@ -41,7 +41,7 @@ def train(training_set, size, pre_net_op, n_feature):
   '''
 
   learning_rate = 0.003
-  training_epochs = 200
+  training_epochs = 10000
   batch_size = 500
 
   row = size[1]
@@ -53,11 +53,11 @@ def train(training_set, size, pre_net_op, n_feature):
   X = tf.placeholder(tf.float32, [ None, n_input ])
 
   encoder_W = tf.Variable(tf.random_normal([ n_input, n_feature ]))
-  encoder_b = tf.Variable(tf.random_normal([ n_feature ]))
+  encoder_b = tf.Variable(tf.zeros([ n_feature ]))
   decoder_W = tf.Variable(tf.random_normal([ n_feature, n_input ]))
-  decoder_b = tf.Variable(tf.random_normal([ n_input ]))
+  decoder_b = tf.Variable(tf.zeros([ n_input ]))
 
-  all = getCost(X, encoder_W, None, decoder_W, None) 
+  all = getCost(X, encoder_W, encoder_b, decoder_W, decoder_b) 
   cost = all['cost']
   optimizer = tf.train.RMSPropOptimizer(learning_rate).minimize(cost)
   
@@ -93,6 +93,8 @@ def train(training_set, size, pre_net_op, n_feature):
 
         print "Epoch:", epoch, ", cost=", c
         summary_writer.add_summary(ws, epoch)
+    #except Exception as e:
+    #  print e
     except:
       print 'Early Stop Manually'
 
