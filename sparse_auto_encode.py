@@ -42,7 +42,7 @@ def train(training_set, size, pre_net_op, n_feature):
 
   learning_rate = 0.003
   training_epochs = 10000
-  batch_size = 500
+  batch_size = 100
 
   row = size[1]
   col = size[0]
@@ -59,7 +59,7 @@ def train(training_set, size, pre_net_op, n_feature):
 
   all = getCost(X, encoder_W, encoder_b, decoder_W, decoder_b) 
   cost = all['cost']
-  optimizer = tf.train.RMSPropOptimizer(learning_rate).minimize(cost)
+  optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
   
   # it seems the checker has bug for watching gradient descent for tf.pow 
   check = tf.add_check_numerics_ops()

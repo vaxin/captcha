@@ -97,6 +97,8 @@ class ImageX:
       if type(source) == list:
         source = np.array(source)
       self.image = Image.fromarray(source)
+    elif type(source) == Image.Image:
+      self.image = source 
 
   def getImage(self):
     return self.image

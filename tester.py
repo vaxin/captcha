@@ -58,6 +58,7 @@ def testWithImage():
   arr = ix.getArray()
   img_size = ix.getSize()
   conv_size = 30
+  n_feature = 500
 
   training_set = np.asarray([ arr ])
   training_set = img_util.explode(training_set, img_size, conv_size = conv_size, stride = conv_size)
@@ -66,7 +67,6 @@ def testWithImage():
 
   training_set = training_set.reshape(-1, conv_size * conv_size)
 
-  n_feature =25 
   weights = sparse_auto_encode.train(training_set, (conv_size, conv_size), None, n_feature)
 
   imgs = util.visualize(weights, (conv_size, conv_size))

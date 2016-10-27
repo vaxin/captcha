@@ -26,8 +26,11 @@ Fourthly, I will visualize all the middle layers so that the NN is under my cont
 The Generator will generates all the training sets, the Trainer will train every layer for DCNN, the Runner will run the DCNN to do the captha recognition tasks.
 
 - util.py - common utils for images and text
-- generator.py - The Generator
+- line.py - line drawer
+- img.py - Image utils
+- generator.py - The Generator generates all kinds of characters
 - trainer.py - The Trainer
 - runner.py - The Runner
 - nn.net - The trained and saved network parameters
 - sparse_auto_encode.py - Implementation of Sparse Auto Encoder. It will be used to train some layers under unsupervised learning, which will construct the basic layers of the whole Neural Network.
+- tester.py - test basic functions and features
