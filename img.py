@@ -35,30 +35,40 @@ def conv(img, conv_size, stride):
     array = getImageArray(img)
   else:
     array = img
+
   ret = []
   row = len(img)
   col = len(img[0])
 
+  if type(stride) == list:
+    stride_y = stride[1]
+  else:
+    stride_y = stride
+
   for x in range(0, row - conv_size + 1, stride):
-    for y in range(0, col - conv_size + 1, stride):
-      tmp = img[x: x + conv_size, y: y + conv_size]
-      ret.append(tmp)
+    for y in range(0, col - conv_size + 1, stride_y):
+      if x + conv_size > row or y + conv_size > col:
+        break
+
+      box = []
+      for tmp in img[x : x + conv_size]:
+        box.append(tmp[y : y + conv_size])
+      ret.append(box)
 
   return np.asarray(ret)
 
-def explode(training_set, img_size, conv_size):
+def explode(training_set, img_size, conv_size, stride = 10):
   img_w = img_size[0]
   img_h = img_size[1]
 
   # convert training_set to segment
-  training_set = training_set.reshape(-1, img_w * img_h)
-
   new_set = []
-  training_set = training_set.reshape(-1, img_w, img_h)
+  ''' NOTICE: img_w --> col, img_h --> row '''
+  training_set = training_set.reshape(-1, img_h, img_w)
 
   for img in training_set:
-    for item in conv(img, conv_size, 10):
-      item = item.reshape(conv_size * conv_size)
+    for item in conv(img, conv_size, stride):
+      item = item.reshape(conv_size, conv_size)
       new_set.append(item)
   return np.asarray(new_set)
 
@@ -108,4 +118,42 @@ class ImageX:
 
   def save(self, path):
     saveImage(self.image, path)
-    
+
+  def getSize(self):
+    return self.image.size
+
+
+if __name__ == "__main__":
+  ix = ImageX('desk.jpg')
+  ix.gray()
+  arr = ix.getArray()
+
+  conv_size = 1000
+  c1 = []
+  start = 250
+  ss = 20
+  for i in range(start, start + ss):
+    c1.append(arr[i][start: start + ss])
+
+  i1 = Image.fromarray(np.asarray(c1))
+  i1.save('source/c1.tiff')
+
+  ts = np.asarray([ arr ])
+  imgs = explode(ts, ix.getSize(), conv_size, 1000);
+
+  c2 = []
+  for i in range(start, start + ss):
+    c2.append(imgs[0][i][start : start + ss])
+  i2 = Image.fromarray(np.asarray(c2))
+  i2.save('source/c2.tiff')
+
+  #saveTIFFsFromArray(imgs, 'source')
+
+  # compare
+  img_size = ix.getSize()
+  print ts.shape, img_size 
+
+  for i in range(2):
+    for j in range(100):
+      print arr[i][j], imgs[0][i][j]
+    print '------------'

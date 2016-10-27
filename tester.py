@@ -48,23 +48,30 @@ def computeCost():
   print sess.run(cost, feed_dict = { X: xs })
 
 def testWithImage():
-  img = img_util.gray(img_util.getImage('desk.jpg'))
-  img_size = img.size
-  img = img_util.getImageArray(img)
-  training_set = np.asarray([ img ])
-  training_set = img_util.explode(training_set, img_size, 15)
-  training_set = training_set.reshape(-1, 15, 15)
-  img_util.saveTIFFsFromArray(training_set, 'source')
+  ix = img_util.ImageX('desk.jpg')
+  ix.gray()
+  arr = ix.getArray()
+  img_size = ix.getSize()
+  conv_size = 30
 
-  return
+  training_set = np.asarray([ arr ])
+  training_set = img_util.explode(training_set, img_size, conv_size = conv_size, stride = conv_size)
+
+  #img_util.saveTIFFsFromArray(training_set[0:10], 'source') 
+
+  training_set = training_set.reshape(-1, conv_size * conv_size)
+
   n_feature =25 
-  conv_size = 15
-  
-  weights = sparse_auto_encode.train(training_set, img_size, conv_size, None, n_feature)
+  weights = sparse_auto_encode.train(training_set, (conv_size, conv_size), None, n_feature)
 
   imgs = util.visualize(weights, (conv_size, conv_size))
   saveImages(imgs)
 
+def testConv():
+  img = [ [ 11, 12, 13, 14, 15 ], [ 21, 22, 23, 24, 25 ], [ 31, 32, 33, 34, 35 ] ]
+  print img_util.conv(img, 2, 1).tolist()
+
 #computeCost()
 #testLines()
 testWithImage()
+#testConv()

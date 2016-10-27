@@ -37,18 +37,19 @@ def getCost(X, encoder_W, encoder_b, decoder_W, decoder_b):
 def train(training_set, size, pre_net_op, n_feature):
   '''
   input_data -> pre_net -> layer, the layer can be conv_layer, if not you should make segments by yourself
+  size: is img_size, size[0] --> width, size[1] --> height
   '''
-  img_w = img_size[0]
-  img_h = img_size[1]
-  n_pixel = img_w * img_h
 
   learning_rate = 0.003
   training_epochs = 200
   batch_size = 500
 
+  row = size[1]
+  col = size[0]
+
   # layer will trained by autoencoder
 
-  n_input = size ** 2
+  n_input = row * col
   X = tf.placeholder(tf.float32, [ None, n_input ])
 
   encoder_W = tf.Variable(tf.random_normal([ n_input, n_feature ]))
@@ -72,7 +73,7 @@ def train(training_set, size, pre_net_op, n_feature):
     tmp = tf.transpose(weights_0_to_255)
     for i in range(tf.shape(tmp)[0].eval()):
       tw = tmp[i]
-      tw = tf.reshape(tw, (1, size, size, 1))
+      tw = tf.reshape(tw, (1, row, col, 1))
       tf.image_summary('encoder_Weight_' + str(i), tw)
 
     tf.scalar_summary('cost', cost)
@@ -92,8 +93,7 @@ def train(training_set, size, pre_net_op, n_feature):
 
         print "Epoch:", epoch, ", cost=", c
         summary_writer.add_summary(ws, epoch)
-    except Exception as e:
-      print e
+    except:
       print 'Early Stop Manually'
 
     w = encoder_W.eval()
