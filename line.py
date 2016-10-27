@@ -106,12 +106,16 @@ def genImage(size):
   for x in range(size):  
     row = []
     for y in range(size):
-      row.append([ int(one) for one in img[x][y] ])
+      #row.append([ int(one) for one in img[x][y] ])
+      row.append(img[x][y][0])
     res.append(row)
 
   return np.array(res, dtype = np.uint8)
 
 if __name__ == '__main__':
   res = genImage(30)
-  import img
-  img.saveImageFromArray(res, 'line.png')
+  #import img
+  #img.saveImageFromArray(res, 'line.png')
+  from PIL import Image
+  img = Image.fromarray(res / 255.)
+  img.save('test.tiff')

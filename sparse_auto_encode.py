@@ -4,7 +4,31 @@ import numpy as np
 import util
 import img as img_util
 
-def train(training_set, img_size, pre_net_op, n_hidden):
+def getCost(X, encoder_W, encoder_b, decoder_W, decoder_b):
+  mid = tf.nn.sigmoid(tf.matmul(X, encoder_W) + encoder_b)
+  output = tf.nn.sigmoid(tf.matmul(mid, decoder_W) + decoder_b)
+
+  beta = tf.constant(3.)
+  sparsity = tf.constant(0.01)
+  weight_decay = tf.constant(0.0001)
+  
+  square_error = tf.reduce_mean(0.5 * tf.reduce_sum(tf.pow(X - output, 2), reduction_indices = 1))
+  avg_activate = tf.reduce_mean(mid)
+  sparsity_penalty = beta * tf.reduce_sum(sparsity * tf.log(sparsity / avg_activate) + (tf.constant(1.) - sparsity) * tf.log((tf.constant(1.) - sparsity) / (tf.constant(1.) - avg_activate)))
+  regularization = 0.5 * weight_decay * (tf.reduce_sum(tf.pow(encoder_W, 2)) + tf.reduce_sum(tf.pow(decoder_W, 2)))
+  cost = square_error + sparsity_penalty + regularization
+
+  return {
+    'cost'             : cost,
+    'mid'              : mid,
+    'output'           : output,
+    'square_error'     : square_error,
+    'sparsity_penalty' : sparsity_penalty,
+    'regularization'   : regularization
+  }
+
+
+def train(training_set, img_size, conv_size, pre_net_op, n_feature):
   '''
   input_data -> pre_net -> layer, the layer can be conv_layer, if not you should make segments by yourself
   '''
@@ -12,10 +36,9 @@ def train(training_set, img_size, pre_net_op, n_hidden):
   img_h = img_size[1]
   n_pixel = img_w * img_h
 
-  # conv input size
-  conv_size = 15
-
   # convert training_set to segment
+  training_set = training_set.reshape(-1, img_w * img_h)
+  '''
   new_set = []
   training_set = training_set.reshape(-1, img_w, img_h)
 
@@ -24,38 +47,25 @@ def train(training_set, img_size, pre_net_op, n_hidden):
       item = np.asarray(item).reshape(conv_size * conv_size)
       new_set.append(item)
   training_set = np.asarray(new_set)
-  print training_set.shape
+  '''
+  print training_set
 
-  learning_rate = 1e-3
-  training_epochs = 150
-  batch_size = 1000
+  learning_rate = 1e-5
+  training_epochs = 10000
+  batch_size = 500
 
   # layer will trained by autoencoder
 
   n_input = conv_size ** 2
   X = tf.placeholder(tf.float32, [ None, n_input ])
 
-  encoder_W = tf.Variable(tf.random_normal([ n_input, n_hidden ]))
-  decoder_W = tf.Variable(tf.random_normal([ n_hidden, n_input ]))
+  encoder_W = tf.Variable(tf.random_normal([ n_input, n_feature ]))
+  encoder_b = tf.Variable(tf.random_normal([ n_feature ]))
+  decoder_W = tf.Variable(tf.random_normal([ n_feature, n_input ]))
+  decoder_b = tf.Variable(tf.random_normal([ n_input ]))
 
-  mid = tf.nn.sigmoid(tf.matmul(X, encoder_W))
-  output = tf.nn.sigmoid(tf.matmul(mid, decoder_W))
-
-  beta = tf.constant(3.)
-  sparsity = tf.constant(0.01)
-  weight_decay = tf.constant(0.001)
-  
-  #square_error
-  square_error = 0.5 * tf.reduce_mean(tf.pow(X - output, 2))
-
-  # sparsity_penalty
-  avg_activate = tf.reduce_mean(mid)
-  sparsity_penalty = beta * tf.reduce_sum(sparsity * tf.log(sparsity / avg_activate) + (tf.constant(1.) - sparsity) * tf.log((tf.constant(1.) - sparsity) / (tf.constant(1.) - avg_activate)))
-
-  # regularization
-  regularization = 0.5 * weight_decay * (tf.reduce_sum(tf.pow(encoder_W, 2)) + tf.reduce_sum(tf.pow(decoder_W, 2)))
-
-  cost = square_error + sparsity_penalty + regularization
+  all = getCost(X, encoder_W, encoder_b, decoder_W, decoder_b) 
+  cost = all['cost']
   optimizer = tf.train.RMSPropOptimizer(learning_rate).minimize(cost)
   
   # it seems the checker has bug for watching gradient descent for tf.pow 
@@ -89,13 +99,10 @@ def train(training_set, img_size, pre_net_op, n_hidden):
 
       print "Epoch:", epoch, ", cost=", c
       summary_writer.add_summary(ws, epoch)
-
     w = encoder_W.eval()
-    print w
-    w1 = w.transpose()
-    print w1
 
-  return encoder_W
+  return w
+  
 
 if __name__ == "__main__":
   '''
@@ -104,10 +111,10 @@ if __name__ == "__main__":
   n_feature = 25
   training_set = generator.generate((w, w))
   '''
-  img = util.gray(util.getImage('desk.jpg'))
+  img = img_util.gray(img_util.getImage('desk.jpg'))
   img_size = img.size
-  img = util.getImageData(img)
+  img = img_util.getImageArray(img)
   training_set = np.asarray([ img ])
-  n_feature = 25
+  n_feature = 50
   
-  encoder_W = train(training_set, img_size, None, n_feature)
+  encoder_W = train(training_set, img_size, 15, None, n_feature)
