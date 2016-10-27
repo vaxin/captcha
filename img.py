@@ -39,17 +39,38 @@ def conv(img, conv_size, stride):
   row = len(img)
   col = len(img[0])
 
-  for x in range(0, row - conv_size, stride):
-    for y in range(0, col - conv_size, stride):
+  for x in range(0, row - conv_size + 1, stride):
+    for y in range(0, col - conv_size + 1, stride):
       tmp = img[x: x + conv_size, y: y + conv_size]
       ret.append(tmp)
 
-  return ret
+  return np.asarray(ret)
+
+def explode(training_set, img_size, conv_size):
+  img_w = img_size[0]
+  img_h = img_size[1]
+
+  # convert training_set to segment
+  training_set = training_set.reshape(-1, img_w * img_h)
+
+  new_set = []
+  training_set = training_set.reshape(-1, img_w, img_h)
+
+  for img in training_set:
+    for item in conv(img, conv_size, 10):
+      item = item.reshape(conv_size * conv_size)
+      new_set.append(item)
+  return np.asarray(new_set)
 
 def saveImageFromArray(arr, path):
   img = Image.fromarray(arr)
-  img.save(path, 'PNG')
+  img.save(path)
 
+def saveTIFFsFromArray(arrs, path):
+  i = 0
+  for one in arrs:
+    saveImageFromArray(one, path + '/' + str(i) + '.tiff')
+    i += 1
 
 def saveImage(img, path):
   img.save(path, 'PNG')

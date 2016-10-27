@@ -1,29 +1,32 @@
 import line
 import sparse_auto_encode
 import tensorflow as tf
-import img
+import img as img_util
 import numpy as np
+import util
 
-def test_lines():
+def genOneLineGrayImageArray(S):
+  return line.genImage(S) / 255.
+
+def testLines():
   # test the sparse auto encoder with a line generator
 
   S = 8
-
-  def genOneLineGrayImageArray():
-    return line.genImage(S) / 255.
+  n_feature = 25
 
   training_set = []
-  for _  in range(100000):
-    training_set.append(genOneLineGrayImageArray())
-  print training_set[0].tolist()
-  weights = sparse_auto_encode.train(np.asarray(training_set), (S, S), S, None, 25)
+  for _  in range(10000):
+    training_set.append(genOneLineGrayImageArray(S))
+  weights = sparse_auto_encode.train(np.asarray(training_set), (S, S), None, n_feature)
+  
+  imgs = util.visualize(weights, (S, S))
+  saveImages(imgs)
 
-  import util
+def saveImages(images):
   i = 0
-  for x in util.visualize(weights, (S, S)):
+  for x in images:
     x.save('test/test_' + str(i) + '.tiff')
     i += 1
-
 
 def computeCost():
   n_input = 25
@@ -44,6 +47,24 @@ def computeCost():
   xs = line
   print sess.run(cost, feed_dict = { X: xs })
 
+def testWithImage():
+  img = img_util.gray(img_util.getImage('desk.jpg'))
+  img_size = img.size
+  img = img_util.getImageArray(img)
+  training_set = np.asarray([ img ])
+  training_set = img_util.explode(training_set, img_size, 15)
+  training_set = training_set.reshape(-1, 15, 15)
+  img_util.saveTIFFsFromArray(training_set, 'source')
+
+  return
+  n_feature =25 
+  conv_size = 15
+  
+  weights = sparse_auto_encode.train(training_set, img_size, conv_size, None, n_feature)
+
+  imgs = util.visualize(weights, (conv_size, conv_size))
+  saveImages(imgs)
 
 #computeCost()
-test_lines()
+#testLines()
+testWithImage()

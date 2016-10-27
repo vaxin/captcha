@@ -5,8 +5,15 @@ import util
 import img as img_util
 
 def getCost(X, encoder_W, encoder_b, decoder_W, decoder_b):
-  mid = tf.nn.sigmoid(tf.matmul(X, encoder_W) + encoder_b)
-  output = tf.nn.sigmoid(tf.matmul(mid, decoder_W) + decoder_b)
+  mid = tf.matmul(X, encoder_W)
+  if encoder_b is not None:
+    mid = mid + encoder_b
+  mid = tf.nn.sigmoid(mid)
+    
+  output = tf.matmul(mid, decoder_W)
+  if decoder_b is not None:
+    output = output + decoder_b
+  output = tf.nn.sigmoid(output)
 
   beta = tf.constant(3.)
   sparsity = tf.constant(0.01)
@@ -27,8 +34,7 @@ def getCost(X, encoder_W, encoder_b, decoder_W, decoder_b):
     'regularization'   : regularization
   }
 
-
-def train(training_set, img_size, conv_size, pre_net_op, n_feature):
+def train(training_set, size, pre_net_op, n_feature):
   '''
   input_data -> pre_net -> layer, the layer can be conv_layer, if not you should make segments by yourself
   '''
@@ -36,27 +42,13 @@ def train(training_set, img_size, conv_size, pre_net_op, n_feature):
   img_h = img_size[1]
   n_pixel = img_w * img_h
 
-  # convert training_set to segment
-  training_set = training_set.reshape(-1, img_w * img_h)
-  '''
-  new_set = []
-  training_set = training_set.reshape(-1, img_w, img_h)
-
-  for img in training_set:
-    for item in img_util.conv(img, conv_size, 10):
-      item = np.asarray(item).reshape(conv_size * conv_size)
-      new_set.append(item)
-  training_set = np.asarray(new_set)
-  '''
-  print training_set
-
   learning_rate = 0.003
   training_epochs = 200
   batch_size = 500
 
   # layer will trained by autoencoder
 
-  n_input = conv_size ** 2
+  n_input = size ** 2
   X = tf.placeholder(tf.float32, [ None, n_input ])
 
   encoder_W = tf.Variable(tf.random_normal([ n_input, n_feature ]))
@@ -64,7 +56,7 @@ def train(training_set, img_size, conv_size, pre_net_op, n_feature):
   decoder_W = tf.Variable(tf.random_normal([ n_feature, n_input ]))
   decoder_b = tf.Variable(tf.random_normal([ n_input ]))
 
-  all = getCost(X, encoder_W, encoder_b, decoder_W, decoder_b) 
+  all = getCost(X, encoder_W, None, decoder_W, None) 
   cost = all['cost']
   optimizer = tf.train.RMSPropOptimizer(learning_rate).minimize(cost)
   
@@ -80,7 +72,7 @@ def train(training_set, img_size, conv_size, pre_net_op, n_feature):
     tmp = tf.transpose(weights_0_to_255)
     for i in range(tf.shape(tmp)[0].eval()):
       tw = tmp[i]
-      tw = tf.reshape(tw, (1, conv_size, conv_size, 1))
+      tw = tf.reshape(tw, (1, size, size, 1))
       tf.image_summary('encoder_Weight_' + str(i), tw)
 
     tf.scalar_summary('cost', cost)
@@ -100,25 +92,11 @@ def train(training_set, img_size, conv_size, pre_net_op, n_feature):
 
         print "Epoch:", epoch, ", cost=", c
         summary_writer.add_summary(ws, epoch)
-    except:
+    except Exception as e:
+      print e
       print 'Early Stop Manually'
 
     w = encoder_W.eval()
 
   return w
-  
 
-if __name__ == "__main__":
-  '''
-  import generator
-  w = 10
-  n_feature = 25
-  training_set = generator.generate((w, w))
-  '''
-  img = img_util.gray(img_util.getImage('desk.jpg'))
-  img_size = img.size
-  img = img_util.getImageArray(img)
-  training_set = np.asarray([ img ])
-  n_feature = 50
-  
-  encoder_W = train(training_set, img_size, 15, None, n_feature)
