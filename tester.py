@@ -86,8 +86,9 @@ def testConv():
 
 def testWithChars():
   import generator
-  training_set = generator.generateChars(size = 300, count = 10)
-  convTrain(training_set, img_size = (300, 300), conv_size = 10, stride = 5, n_feature = 100)
+  size = 80
+  training_set = generator.generateChars(size = size, count = 1000)
+  convTrain(training_set, img_size = (size, size), conv_size = 10, stride = 5, n_feature = 100)
 
 #computeCost()
 #testLines()
